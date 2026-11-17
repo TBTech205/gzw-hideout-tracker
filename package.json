@@ -1,7 +1,7 @@
 {
   "name": "hideout-tracker",
   "author": "TBTech205",
-  "version": "0.2.5",
+  "version": "0.2.0",
   "description": "Companion tracker for hideout laboratory crafting",
   "main": "main.js",
   "scripts": {
