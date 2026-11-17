@@ -1,0 +1,52 @@
+{
+  "name": "hideout-tracker",
+  "version": "0.2.0",
+  "description": "Companion tracker for hideout laboratory crafting",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win nsis --publish never",
+    "release": "electron-builder --win nsis --publish always"
+  },
+  "devDependencies": {
+    "electron": "^45.3.3",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "local.hideout.tracker",
+    "productName": "GZW Hideout Tracker",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "style.css",
+      "app.js",
+      "recipes.js",
+      "icon.ico",
+      "icon.png",
+      "icons/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico",
+      "signAndEditExecutable": false
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "TBTech205",
+      "repo": "gzw-hideout-tracker",
+      "releaseType": "release"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false
+    }
+  },
+  "author": "Tyler",
+  "dependencies": {
+    "electron-updater": "^6.3.9"
+  },
+  "allowScripts": {
+    "electron@45.3.3": true
+  }
+}

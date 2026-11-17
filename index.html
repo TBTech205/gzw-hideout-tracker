@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Hideout Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="tabs">
+    <button data-tab="stash" class="active">Stash</button>
+    <button data-tab="recipes">Production</button>
+    <button data-tab="planner">Planner</button>
+    <button data-tab="timers">Timers <span id="timerBadge" hidden></span></button>
+  </nav>
+  <div id="updateBar" hidden></div>
+  <header>
+    <h1 id="title">Stash</h1>
+    <p id="subtitle"></p>
+  </header>
+  <main id="view"></main>
+  <footer>Ctrl+Alt+H shows or hides this window <span id="ver"></span></footer>
+  <script src="recipes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
