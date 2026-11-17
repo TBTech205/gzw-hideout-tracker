@@ -1,6 +1,7 @@
 {
   "name": "hideout-tracker",
-  "version": "0.2.0",
+  "author": "TBTech205",
+  "version": "0.2.5",
   "description": "Companion tracker for hideout laboratory crafting",
   "main": "main.js",
   "scripts": {
@@ -28,8 +29,7 @@
     ],
     "win": {
       "target": "nsis",
-      "icon": "icon.ico",
-      "signAndEditExecutable": false
+      "icon": "icon.ico"
     },
     "publish": {
       "provider": "github",
@@ -41,8 +41,7 @@
       "oneClick": true,
       "perMachine": false
     }
-  },
-  "author": "Tyler",
+  },  
   "dependencies": {
     "electron-updater": "^6.3.9"
   },

@@ -37,7 +37,7 @@ function setupUpdates() {
 
   const check = () => autoUpdater.checkForUpdates().catch(() => {});
   win.webContents.once('did-finish-load', check);
-  setInterval(check, 4 * 60 * 60 * 1000); // and every 4 hours while the app stays open
+  setInterval(check, 15 * 60 * 1000);
 }
 
 app.setAppUserModelId('local.hideout.tracker');
