@@ -12,7 +12,7 @@ const TITLES = {
   stash: ['Stash', 'What you are carrying. Tap + and − to keep it in step with the game.'],
   recipes: ['Production', 'Pick an item, check what you hold, and start a timer.'],
   planner: ['Planner', 'Pick a target and see every step and material you still need.'],
-  timers: ['Timers', 'Running jobs. You get a notification when one finishes.']
+  timers: ['Timers', 'Running jobs. Finished items are added to your stash automatically.']
 };
 
 function load() {
@@ -72,6 +72,7 @@ function recipesView() {
 
   const it = ITEMS[sel];
   const can = canMake(sel, qty);
+  const running = state.jobs.find((j) => j.item === sel);
   const tiles = Object.entries(it.inputs).map(([inId, per]) => {
     const need = per * qty;
     const ok = have(inId) >= need;
@@ -88,18 +89,24 @@ function recipesView() {
       <div class="d-title">${it.name}</div>
       <div class="d-sub">Laboratory</div>
       <div class="label d-desc">Required resources</div>
-      <div class="tiles">${tiles}</div>
+      ${running
+      ? `<div class="muted">Production is running. Stopping it returns the resources to your stash.</div>`
+      : `<div class="tiles">${tiles}</div>`}
       <div class="d-spacer"></div>
-      ${can ? '' : '<div class="warn">You don\'t have enough resources</div>'}
+      ${running ? '' : (can ? '' : '<div class="warn">You don\'t have enough resources</div>')}
       <div class="d-foot">
-        <span class="amt">Amount
-          <button class="step" data-q="-1" aria-label="Decrease amount">−</button>
-          <span class="qty">${qty}</span>
-          <button class="step" data-q="1" aria-label="Increase amount">+</button>
-        </span>
-        Production time: <b>${fmt(it.time * qty)}</b>
+        ${running
+      ? `${running.qty || 1} × running <b data-timer="${running.id}">${fmtClock((running.start + running.dur - Date.now()) / 1000)}</b>`
+      : `<span class="amt">Amount
+              <button class="step" data-q="-1" aria-label="Decrease amount">−</button>
+              <span class="qty">${qty}</span>
+              <button class="step" data-q="1" aria-label="Increase amount">+</button>
+            </span>
+            Production time: <b>${fmt(it.time * qty)}</b>`}
       </div>
-      <button class="start" data-start="${sel}" ${can ? '' : 'disabled'}>Start production</button>
+      ${running
+      ? `<button class="start stop" data-cancel="${running.id}">Stop production</button>`
+      : `<button class="start" data-start="${sel}" ${can ? '' : 'disabled'}>Start production</button>`}
     </div>
   </div>`;
 }
@@ -154,14 +161,10 @@ function timersView() {
   }
   return state.jobs.map((j) => {
     const q = j.qty || 1;
-    const left = (j.start + j.dur - Date.now()) / 1000;
-    const done = left <= 0;
-    return `<div class="card ${done ? 'ready' : ''}">
-      <div class="card-head"><strong>${q} × ${ITEMS[j.item].name}</strong><span class="muted">${done ? 'Finished' : 'In progress'}</span></div>
-      <div class="timer" data-timer="${j.id}">${done ? 'Ready' : fmtClock(left)}</div>
-      ${done
-        ? `<button class="act" data-collect="${j.id}">Collect</button>`
-        : `<button class="act ghost" data-cancel="${j.id}">Cancel (inputs are not refunded)</button>`}
+    return `<div class="card">
+      <div class="card-head"><strong>${q} × ${ITEMS[j.item].name}</strong><span class="muted">In progress</span></div>
+      <div class="timer" data-timer="${j.id}">${fmtClock((j.start + j.dur - Date.now()) / 1000)}</div>
+      <button class="act ghost" data-cancel="${j.id}">Stop production</button>
     </div>`;
   }).join('');
 }
@@ -210,7 +213,12 @@ $('#view').addEventListener('click', (e) => {
     const j = state.jobs.find((x) => x.id === t.dataset.collect);
     if (j) { state.stash[j.item] = have(j.item) + (j.qty || 1); state.jobs = state.jobs.filter((x) => x !== j); }
   } else if (t.dataset.cancel) {
-    state.jobs = state.jobs.filter((x) => x.id !== t.dataset.cancel);
+    const j = state.jobs.find((x) => x.id === t.dataset.cancel);
+    if (j) {
+      const q = j.qty || 1;
+      for (const [inId, per] of Object.entries(ITEMS[j.item].inputs)) state.stash[inId] = have(inId) + per * q;
+      state.jobs = state.jobs.filter((x) => x !== j);
+    }
   } else return;
   save(); render();
 });
@@ -230,23 +238,28 @@ document.addEventListener('error', (e) => {
 
 if (window.Notification && Notification.permission === 'default') Notification.requestPermission();
 
-setInterval(() => {
-  let finished = false;
-  for (const j of state.jobs) {
-    if (!j.notified && Date.now() >= j.start + j.dur) {
-      j.notified = true; finished = true;
-      if (window.Notification && Notification.permission === 'granted') {
-        new Notification('Production finished', { body: `${j.qty || 1} × ${ITEMS[j.item].name}` });
-      }
+function finishJobs() {
+  const now = Date.now();
+  const done = state.jobs.filter((j) => now >= j.start + j.dur);
+  if (!done.length) return false;
+  for (const j of done) {
+    const q = j.qty || 1;
+    state.stash[j.item] = have(j.item) + q;
+    if (window.Notification && Notification.permission === 'granted') {
+      new Notification('Production finished', { body: `${q} × ${ITEMS[j.item].name} added to your stash` });
     }
   }
-  if (finished) { save(); render(); return; }
-  if (tab === 'timers') {
-    document.querySelectorAll('[data-timer]').forEach((el) => {
-      const j = state.jobs.find((x) => x.id === el.dataset.timer);
-      if (j) el.textContent = fmtClock((j.start + j.dur - Date.now()) / 1000);
-    });
-  }
+  state.jobs = state.jobs.filter((j) => !done.includes(j));
+  save();
+  return true;
+}
+
+setInterval(() => {
+  if (finishJobs()) { render(); return; }
+  document.querySelectorAll('[data-timer]').forEach((el) => {
+    const j = state.jobs.find((x) => x.id === el.dataset.timer);
+    if (j) el.textContent = fmtClock((j.start + j.dur - Date.now()) / 1000);
+  });
 }, 1000);
 
 window.hideout.getVersion().then((v) => { $('#ver').textContent = 'v' + v; });
@@ -263,4 +276,5 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'restartBtn') window.hideout.installUpdate();
 });
 
+finishJobs();
 render();
