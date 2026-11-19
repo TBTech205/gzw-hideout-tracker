@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 
@@ -46,20 +46,8 @@ app.whenReady().then(() => {
   createWindow();
   setupUpdates();
 
-  // Ctrl+Alt+H shows or hides the window from anywhere, including in-game.
-  globalShortcut.register('CommandOrControl+Alt+H', () => {
-    if (!win) return;
-    if (win.isVisible() && win.isFocused()) {
-      win.hide();
-    } else {
-      win.show();
-      win.focus();
-    }
-  });
-
   ipcMain.handle('get-version', () => app.getVersion());
   ipcMain.on('install-update', () => autoUpdater.quitAndInstall());
 });
 
-app.on('will-quit', () => globalShortcut.unregisterAll());
 app.on('window-all-closed', () => app.quit());

@@ -68,12 +68,6 @@ window.RECIPES = {
       time: 3600,
       inputs: { opium_gum: 1, garden_lime: 1, ammonium_chloride: 1, purified_water: 1 }
     },
-    solution_10: {
-      name: '10% Morphine Solution',
-      type: 'craft',
-      time: 5400,
-      inputs: { low_base: 1, citric_acid: 1, purified_water: 1 }
-    },
     medium_base: {
       name: 'Medium-Quality Morphine Base',
       type: 'craft',
@@ -85,12 +79,6 @@ window.RECIPES = {
       type: 'craft',
       time: 7200,
       inputs: { opium_gum: 1, garden_lime: 1, ammonium_chloride: 1, purified_water: 1 }
-    },
-    stabilized_sulfate: {
-      name: 'Stabilized Morphine Sulfate Liquid',
-      type: 'craft',
-      time: 7200,
-      inputs: { medium_base: 1, sulfuric_acid: 1, methylparaben: 1, saline: 1 }
     },
     gray_heroin: {
       name: 'Gray Heroin',
