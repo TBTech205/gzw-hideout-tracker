@@ -93,7 +93,6 @@ function recipesView() {
       ? `<div class="muted">Production is running. Stopping it returns the resources to your stash.</div>`
       : `<div class="tiles">${tiles}</div>`}
       <div class="d-spacer"></div>
-      ${running ? '' : (can ? '' : '<div class="warn">You don\'t have enough resources</div>')}
       <div class="d-foot">
         ${running
       ? `${running.qty || 1} × running <b data-timer="${running.id}">${fmtClock((running.start + running.dur - Date.now()) / 1000)}</b>`
